@@ -1292,6 +1292,17 @@ do_setup_env(Session *s, const char *shell)
 		child_set_env(&env, &envsize, "TMPDIR", cray_tmpdir);
 #endif /* _UNICOS */
 
+#ifdef __APPLE__
+	char tmpdir[MAXPATHLEN] = {0};
+	if (confstr(_CS_DARWIN_USER_TEMP_DIR, tmpdir, sizeof(tmpdir)) > 0) {
+		child_set_env(&env, &envsize, "TMPDIR", tmpdir);
+	} else {
+		// errno is set by confstr
+		errno = 0;
+		debug2("%s: unable to set TMPDIR", __func__);
+	}
+#endif /* __APPLE__ */
+
 	/*
 	 * Since we clear KRB5CCNAME at startup, if it's set now then it
 	 * must have been set by a native authentication method (eg AIX or
